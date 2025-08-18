@@ -27,38 +27,51 @@ async def fetch_document(ctx: RunContextWrapper[AnalysisContext]) -> str:
         file_ext = os.path.splitext(file_url)[1].lower()  # Detect from URL if needed
         
         content = BytesIO(response.content)
-        
+
+        # Normalize storage
+        ctx.context.pages = []
+
         if "pdf" in content_type or file_ext == ".pdf":
             ctx.context.file_type = "pdf"
             reader = PdfReader(content)
-            ctx.context.content_sections = [{"section_id": i+1, "content": page.extract_text() or ""} for i, page in enumerate(reader.pages)]
-        
-        elif "word" in content_type or file_ext in (".doc", ".docx"):
+            for page in reader.pages:
+                ctx.context.pages.append(page.extract_text() or "")
+
+        elif ("word" in content_type or file_ext in (".docx",)):
+            # Note: legacy .doc is not supported by python-docx
+            if file_ext == ".doc":
+                return "Unsupported file type: .doc (legacy Word). Please convert to .docx."
             ctx.context.file_type = "docx"
             doc = Document(content)
             full_text = "\n".join([para.text for para in doc.paragraphs])
-            # Split into "sections" (e.g., paragraphs as pseudo-pages)
-            sections = full_text.split("\n\n")  # Simple split; improve if needed
-            ctx.context.content_sections = [{"section_id": i+1, "content": sec} for i, sec in enumerate(sections) if sec.strip()]
-        
-        elif "excel" in content_type or file_ext in (".xls", ".xlsx"):
+            # Heuristic: split on double newlines to create pseudo-pages
+            sections = [sec.strip() for sec in full_text.split("\n\n") if sec.strip()]
+            if not sections:
+                sections = [full_text]
+            ctx.context.pages.extend(sections)
+
+        elif ("spreadsheetml" in content_type) or ("excel" in content_type) or (file_ext in (".xlsx",)):
+            # Prefer robust .xlsx handling via openpyxl
+            if file_ext == ".xls":
+                return "Unsupported file type: .xls (legacy Excel). Please convert to .xlsx."
             ctx.context.file_type = "xlsx"
-            xls = pd.ExcelFile(content)
-            ctx.context.content_sections = []
+            xls = pd.ExcelFile(content, engine="openpyxl")
             for sheet_name in xls.sheet_names:
-                df = pd.read_excel(xls, sheet_name=sheet_name)
-                ctx.context.content_sections.append({"section_id": sheet_name, "content": df.to_csv(index=False)})  # Convert to CSV string for text analysis
-        
+                df = pd.read_excel(xls, sheet_name=sheet_name, dtype=str, engine="openpyxl")
+                # Convert each sheet into a CSV-like string page
+                csv_text = df.to_csv(index=False)
+                ctx.context.pages.append(f"Sheet: {sheet_name}\n\n{csv_text}")
+
         elif "text" in content_type or file_ext == ".txt":
             ctx.context.file_type = "txt"
-            text_content = content.read().decode("utf-8")
-            ctx.context.content_sections = [{"section_id": 1, "content": text_content}]
-        
+            text_content = content.read().decode("utf-8", errors="replace")
+            ctx.context.pages.append(text_content)
+
         else:
-            return "Unsupported file type."
-        
-        ctx.context.total_sections = len(ctx.context.content_sections)
-        return f"Document fetched as {ctx.context.file_type} with {ctx.context.total_sections} sections."
+            return f"Unsupported file type: content_type={content_type} ext={file_ext}"
+
+        ctx.context.total_pages = len(ctx.context.pages)
+        return f"Document fetched as {ctx.context.file_type} with {ctx.context.total_pages} pages."
 
     except Exception as e:
         return f"Error fetching/parsing document: {str(e)}"

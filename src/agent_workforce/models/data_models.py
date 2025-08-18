@@ -11,6 +11,7 @@ class AnalysisContext:
     total_pages: int = 0
     document_type: str = ""
     high_level_type: str = ""
+    file_type: str = ""
 
 class Classification(BaseModel):
     document_type: Literal["Invoice", "Bank_Statement", "Agreement", "Deed", "Contract", "Receipt", "Form", "Report"]
