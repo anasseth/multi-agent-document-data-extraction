@@ -8,14 +8,11 @@ from agents import function_tool, RunContextWrapper
 from ..models.data_models import AnalysisContext
 
 def fetch_document(ctx: RunContextWrapper[AnalysisContext]) -> str:
-    # GET endpoint with file_url query parameter
-    file_url = "https://inbox-mails-files-storage.s3.amazonaws.com/attached-files/6853c64130388c569013f7a7/2151094325_15082025101707.pdf"
-    url = f"https://dev.encodrix.com/api/folders/stream_file/?file_url={file_url}"
-    
-    # Headers with bearer token
+    file_url = ""
+    url = f""
+
     headers = {
-        "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU1NTk0Njg5LCJpYXQiOjE3NTU1MDgyODksImp0aSI6Ijk0M2E0NjhkMzJmZDQ5ZDBhNjVjOWNjZDFhMjYzYzhiIiwiX2lkIjoiNjgyYjY3NDBkODJkODliYWJjNTBiNzY3Iiwicm9sZSI6ImNsaWVudCIsInBlcm1pc3Npb25zIjpbInZpZXdfZG9jdW1lbnRzIiwiTWFuYWdlIFVzZXJzIiwiYXBwcm92ZV9yZXF1ZXN0Il19.BYNtFv003a4lGaPEy48SFqq0dAEdVRkkC836cxSsAKs",  # Replace with actual token
-        # "Accept": "application/pdf"
+        "Authorization": "Bearer",
     }
 
     try:

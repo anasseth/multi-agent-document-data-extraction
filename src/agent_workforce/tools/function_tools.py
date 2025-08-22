@@ -9,18 +9,15 @@ from ..models.data_models import AnalysisContext
 
 @function_tool
 async def fetch_document(ctx: RunContextWrapper[AnalysisContext]) -> str:
-    file_url = "https://inbox-mails-files-storage.s3.amazonaws.com/attached-files/6853c64130388c569013f7a7/basic-invoice_18082025091811.docx"
-    url = f"https://dev.encodrix.com/api/folders/stream_file/?file_url={file_url}"
+    file_url = ""
+    url = f""
     
     headers = {
-        "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU1Njk0NjQ2LCJpYXQiOjE3NTU2MDgyNDYsImp0aSI6IjRkOTI0MzM0OTFiZDQ0NGRhZWYzYjYxMWJiNjI3MDZjIiwiX2lkIjoiNjg2MjZiMDY5MzQ5MGYxZTEyNzExNjJmIiwicm9sZSI6InN1cGVyYWRtaW4iLCJwZXJtaXNzaW9ucyI6W119.y9p524b9TyqB-9ulwNwhEKIb_EIJ8QRDKIYWcd07viI",
+        "Authorization": "",
     }
 
     try:
         response = requests.get(url, headers=headers, stream=True)
-        print("****************RESPONSE******************")
-        print(response)
-        print("*******************************************")
         response.raise_for_status()
         
         content_type = response.headers.get("Content-Type", "").lower()
