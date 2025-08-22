@@ -1,5 +1,3 @@
-# Data models and classes
-
 from dataclasses import dataclass, field
 from typing import Dict, Any, List, Literal
 from pydantic import BaseModel
